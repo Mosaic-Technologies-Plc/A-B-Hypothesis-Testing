@@ -95,6 +95,7 @@ def run_train_pipeline(model, x, y, experiment_name, run_name):
     X_train, X_test, y_train, y_test = train_test_split(x, y,
                                                         test_size=0.3,
                                                         random_state=123)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size = 0.23)
     run_params = model.get_params()
 
     train_pipeline.fit(X_train, y_train)

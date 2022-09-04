@@ -1,0 +1,6 @@
+services:
+  streamlit:
+    container_name: "A_B_Hyphothesis_Testing"
+    build:
+      dockerfile: ./Dockerfile
+      context: ./

@@ -1,0 +1,8 @@
+{
+  "experiment": 0.05,
+  "hour": 0.65,
+  "platform_os": 0.01,
+  "browser": 0.09,
+  "day_of_week": 0.18,
+  "brand": 0.03
+}
