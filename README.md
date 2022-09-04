@@ -25,6 +25,8 @@ SmartAd is a mobile first advertiser agency. It designs intuitive touch-enabled 
 
 As a Machine learning engineer in SmartAd, the task was to design a reliable hypothesis testing algorithm for the BIO service and to determine whether a recent advertising campaign resulted in a significant lift in brand awareness.
 
+![Alt text](MLFlow.png?raw=true "ML Flow")
+
 ## About The Data
 The BIO(Brand Impact Optimizer) data for this project is a "Yes" or "No" response from online users to the below question
 - Q: Do you know the brand Lux?
