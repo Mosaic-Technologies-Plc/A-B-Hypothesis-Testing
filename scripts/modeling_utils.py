@@ -146,7 +146,7 @@ class TrainingPipeline(Pipeline):
 
     def get_feature_importance(self, model, x):
         feature_importance = None
-        if str(model) == "LogisticRegression()":
+        if "LogisticRegression" in str(model):
             feature_importance = model.coef_[0]
         else:
             feature_importance = model.feature_importances_
