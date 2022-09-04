@@ -7,3 +7,5 @@ scipy
 matplotlib
 seaborn
 xgboost
+plotly
+streamlit
