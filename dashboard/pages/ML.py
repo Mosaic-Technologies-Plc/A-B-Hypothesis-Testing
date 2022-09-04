@@ -24,6 +24,39 @@ from util import get_categorical_columns, get_numerical_columns
 from ml_utils import label_encoder
 
 
+@st.cache
+def loadNewData():
+    df = pd.read_csv('data/CleanedBalancedABtwoCampaignEngView.csv')
+    # main_df = df.copy()
+    # # print(df.head())
+    # numerical_cols = get_numerical_columns(df)
+    categorical_cols = get_categorical_columns(df)
+    # # print(categorical_cols)
+    # categorical_cols.remove('Unamed: 0')
+    categorical_cols_encoded = label_encoder(df)
+    # categorical_cols_encoded.drop(columns=['auction_id'], inplace=True)
+    # print(categorical_cols)
+
+    X = df.copy()
+    #Dropping duplicate column names
+    X.drop(['yes', 'Unnamed: 0', 'hour', 'platform_os', 'browser'], axis=1, inplace=True)
+
+    X.drop(categorical_cols, axis=1, inplace=True)
+
+    X = pd.concat([X, categorical_cols_encoded], axis=1)
+
+    X.drop(['Unnamed: 0'], axis=1, inplace=True)
+
+
+    X['target'] = X['yes']
+
+    # X.loc[X['no'] == 1, 'target'] = 0
+
+    y = X['target']
+    X.drop(['target'], axis=1, inplace=True)
+    X.drop(['yes'], axis=1, inplace=True)
+
+    return X, y
 
 @st.cache
 def loadData():
@@ -186,27 +219,57 @@ def plot_feature_importance(feature_importance):
 
 def setMLTitle():
     st.header('Modeling for Our Cleaned Initial Data Set')
-    logisticsRegressionRun()
+    with st.expander("Logistic Regression"):
+        logisticsRegressionRun()
+    
+    with st.expander("Random Forest Classifier"):
+        randomForestClassifierRun()
+    
+    with st.expander("XGB Classifier"):
+        XGBoostRun()
+    
+    with st.expander("Decision Tree Classifier"):
+        decisionTreeRun()
+
+    # with st.expander("Modeling for the Balanced Cleaned New Data Set"):
+    MLForNewData()
+
+def MLForNewData():
+    # X, y = loadNewData()
+    # st.write(X)
+    # st.write(y)
+    st.header("Modeling for the Balanced Cleaned New Data Set")
+    with st.expander("Logistic Regression"):
+        logisticsRegressionRun(True, 23, 34, 45)
+    
+    with st.expander("Random Forest Classifier"):
+        randomForestClassifierRun(True, 123, 134, 145)
+
+    with st.expander("XGB Classifier"):
+        XGBoostRun(True, 1233, 1324, 1245)
+    
+    with st.expander("Decision Tree Classifier"):
+        decisionTreeRun(True, 2221, 2222, 2223)
 
 
-def logisticsRegressionRun():
-    model_name = "Logistic Regression"
+def decisionTreeRun(newData=False,id1=355, id2=365, id3=375):
+    model_name = "DecisionTreeClassifier"
     st.write("")
-    st.header("Logistic Regression on Cleaned Data Set")
+    st.header("DecisionTreeClassifier on Cleaned Data Set" if not newData else "DecisionTreeClassifier on Balanced Cleaned New Data Set" )
     st.write("")
-    X, y = loadData()
-    # option = st.selectbox(
-    #  'Choose penality for LogisticRegression',
-    #  ('l1', 'l2'))
-    C_param_range = [0.001,0.01,0.1,1,10,100]
-    c_s = st.selectbox(
-     'Choose regularization strength',
-     (0.001,0.01,0.1,1,10,100))
-    model = LogisticRegression(C=c_s)
-    # scores = ['accuracy', 'precision', 'recall', 'f1']
-    # selectedScores = st.multiselect("choose combaniation of scores", scores)
-    # if selectedScores:
-    num_folds = st.slider("Select number of Folds", 1, 5, 5, key=21)
+    X, y = loadData() if not newData else loadNewData()
+
+    crt = st.selectbox(
+     'Select The function to measure the quality of a split.',
+     ("gini", "entropy"), key=id1+id2)
+    
+    sc = st.selectbox(
+     'Choose the best random split.',
+     ("best", "random"), key=id1+id1)
+
+    model = DecisionTreeClassifier(criterion=crt, splitter=sc)
+
+    num_folds = st.slider("Select number of Folds", 2, 5, 5, key=id1)
     model_result = cross_validation(model, X, y, num_folds)
     st.write(f"Training data accuracy: {model_result['Training Accuracy scores'][0]}")
     st.write(f"Validation data accuracy: {model_result['Validation Accuracy scores'][0]}")
@@ -216,7 +279,125 @@ def logisticsRegressionRun():
 
     st.pyplot(p)
     labels = ["1st Fold", "2nd Fold", "3rd Fold", "4th Fold", "5th Fold"]
-    num = st.slider("Select fold number", 1, num_folds, 1, key=22)
+    num = st.slider("Select fold number", 1, num_folds, 1, key=id2)
+
+    st.write(f"Feature importance for the {labels[num-1]}")
+    st.write(model_result['Coefficients'][num-1])
+    st.write("")
+    pl = plot_feature_importance(model_result['Coefficients'][num-1])
+    st.pyplot(pl)
+
+def XGBoostRun(newData=False,id1=6, id2=7, id3=8):
+    model_name = "XGBClassifier"
+    st.write("")
+    st.header("XGBClassifier on Cleaned Data Set" if not newData else "XGBClassifier on Balanced Cleaned New Data Set" )
+    st.write("")
+    X, y = loadData() if not newData else loadNewData()
+
+    et = st.selectbox(
+     'Choose learning rate',
+     ("Default",0.01,0.015,0.025,0.05,0.1), key=id1+id2)
+    if et == "Default":
+        et = None
+    
+    mx_dp = st.selectbox(
+     'Choose max depth',
+     ("Default",9,12,15,17,25), key=id1+id1)
+    if mx_dp == "Default":
+        mx_dp = None
+    
+    model = XGBClassifier(eta=et, max_depth=mx_dp)
+
+    num_folds = st.slider("Select number of Folds", 2, 5, 5, key=id1)
+    model_result = cross_validation(model, X, y, num_folds)
+    st.write(f"Training data accuracy: {model_result['Training Accuracy scores'][0]}")
+    st.write(f"Validation data accuracy: {model_result['Validation Accuracy scores'][0]}")
+    p = plot_result(model_name, f"Accuracy", "Accuracy scores in {num_folds} Folds",
+            model_result["Training Accuracy scores"],
+            model_result["Validation Accuracy scores"],num_folds)
+
+    st.pyplot(p)
+    labels = ["1st Fold", "2nd Fold", "3rd Fold", "4th Fold", "5th Fold"]
+    num = st.slider("Select fold number", 1, num_folds, 1, key=id2)
+
+    st.write(f"Feature importance for the {labels[num-1]}")
+    st.write(model_result['Coefficients'][num-1])
+    st.write("")
+    pl = plot_feature_importance(model_result['Coefficients'][num-1])
+    st.pyplot(pl)
+
+
+def randomForestClassifierRun(newData=False,id1=26, id2=37, id3=46):
+    model_name = "RandomForestClassifier"
+    st.write("")
+    st.header("RandomForestClassifier on Cleaned Data Set" if not newData else "RandomForestClassifier on Balanced Cleaned New Data Set" )
+    st.write("")
+    X, y = loadData() if not newData else loadNewData()
+
+    mx_ft = st.selectbox(
+     'number of features (max_features)',
+     ("sqrt", "log2"), key=id3)
+    
+    num_trees = st.selectbox(
+     'number of trees in the forest',
+     (10, 100, 200), key=id1+id2)
+
+    model = RandomForestClassifier(max_depth=20, max_features=mx_ft, n_estimators=num_trees)
+
+    num_folds = st.slider("Select number of Folds", 2, 5, 5, key=id1)
+    model_result = cross_validation(model, X, y, num_folds)
+    st.write(f"Training data accuracy: {model_result['Training Accuracy scores'][0]}")
+    st.write(f"Validation data accuracy: {model_result['Validation Accuracy scores'][0]}")
+    p = plot_result(model_name, f"Accuracy", "Accuracy scores in {num_folds} Folds",
+            model_result["Training Accuracy scores"],
+            model_result["Validation Accuracy scores"],num_folds)
+
+    st.pyplot(p)
+    labels = ["1st Fold", "2nd Fold", "3rd Fold", "4th Fold", "5th Fold"]
+    num = st.slider("Select fold number", 1, num_folds, 1, key=id2)
+
+    st.write(f"Feature importance for the {labels[num-1]}")
+    st.write(model_result['Coefficients'][num-1])
+    st.write("")
+    pl = plot_feature_importance(model_result['Coefficients'][num-1])
+    st.pyplot(pl)
+
+def logisticsRegressionRun(newData=False,id1=22, id2=33, id3=44):
+    model_name = "Logistic Regression"
+    st.write("")
+    st.header("Logistic Regression on Cleaned Data Set" if not newData else "Logistic Regression on Balanced Cleaned New Data Set" )
+    st.write("")
+    X, y = loadData() if not newData else loadNewData()
+    # option = st.selectbox(
+    #  'Choose penality for LogisticRegression',
+    #  ('l1', 'l2'))
+    C_param_range = [0.001,0.01,0.1,1,10,100]
+    penalty = ['l1' , 'l2', 'elasticnet']
+    solver = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
+    c_s = st.selectbox(
+     'Choose regularization strength',
+     (0.001,0.01,0.1,1,10,100), key=id3)
+    pnlty = st.selectbox(
+     'Choose penalty',
+     ('l2',), key=id1+id2)
+    slv = st.selectbox(
+     'Choose Solver',
+     ('newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'), key=id1+id3)
+    model = LogisticRegression(C=c_s, penalty=pnlty, solver=slv)
+    # scores = ['accuracy', 'precision', 'recall', 'f1']
+    # selectedScores = st.multiselect("choose combaniation of scores", scores)
+    # if selectedScores:
+    num_folds = st.slider("Select number of Folds", 2, 5, 5, key=id1)
+    model_result = cross_validation(model, X, y, num_folds)
+    st.write(f"Training data accuracy: {model_result['Training Accuracy scores'][0]}")
+    st.write(f"Validation data accuracy: {model_result['Validation Accuracy scores'][0]}")
+    p = plot_result(model_name, f"Accuracy", "Accuracy scores in {num_folds} Folds",
+            model_result["Training Accuracy scores"],
+            model_result["Validation Accuracy scores"],num_folds)
+
+    st.pyplot(p)
+    labels = ["1st Fold", "2nd Fold", "3rd Fold", "4th Fold", "5th Fold"]
+    num = st.slider("Select fold number", 1, num_folds, 1, key=id2)
 
     st.write(f"Feature importance for the {labels[num-1]}")
     st.write(model_result['Coefficients'][num-1])
