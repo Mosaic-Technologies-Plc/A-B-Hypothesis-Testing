@@ -9,10 +9,13 @@
   - [About](#about)
   - [About The Data](#about-data)
   - [Project Structure](#project-structure)
+    - [.dvc](#.dvc)
     - [.github](#.github)
     - [data](#data)
     - [notebooks](#notebooks)
     - [scripts](#scripts)
+    - [training](#training)
+    - [tests](#tests)
     - [root folder](#root-folder)
 
 ***
@@ -37,9 +40,13 @@ The BIO(Brand Impact Optimizer) data for this project is a "Yes" or "No" respons
 ## Project Structure
 The repository has a number of files including python scripts, jupyter notebooks, raw and cleaned data, and text files. Here is their structure with a brief explanation.
 
+### .dvc
+- Data Version Control configurations
+
 ### .github
 - a configuration file for github actions and workflow
 - `workflows/CI.yml` continous integration configuration
+- `workflows/CML.yml` continous machine learning configuration
 
 ### data
 - the folder where the raw, and cleaned datasets' csv files are stored
@@ -52,9 +59,17 @@ The repository has a number of files including python scripts, jupyter notebooks
 - `sequential AB testing.ipynb`: a jupyter notebook that performs sequential AB testing on our dataset
 
 ### scripts
+- Different python utility scripts that have different purposes.
+
+### training
+- `train.py`: Trigerred by CML(Continous Machine Learning) and send training report and status
+
+### tests
+- `test_data_cleaner.py`: Test script for out data cleaner utility
 
 ### root folder
 - `requirements.txt`: a text file lsiting the projet's dependancies
 - `.gitignore`: a text file listing files and folders to be ignored
 - `.dvcignore`: .ignore file for `dvc`
+- `DockerFile`: Dockerfile for deploying our training script
 - `README.md`: Markdown text with a brief explanation of the project and the repository structure.
