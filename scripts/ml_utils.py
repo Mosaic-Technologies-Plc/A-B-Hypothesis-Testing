@@ -43,8 +43,8 @@ def cross_validation(model, X, y, fold=5):
                                 scoring=scoring,
                                 return_train_score=True, return_estimator=True)
 
-    # Print the coefficients of the features in the decision tree
-    # print(results['estimator'].feature_importances_)
+    #Print the coefficients of the features in the decision tree
+    # print(results['estimator'])
     # print("Coefficients: \n", results.best_estimator_.feature_importances_)
 
     # for model in results['estimator']:
